@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Scavenger Reward Consolidation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #020617;
+      --bg-card: #020617;
+      --border: #1e293b;
+      --accent: #0ea5e9;
+      --accent-soft: rgba(14, 165, 233, 0.25);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --error: #fecaca;
+      --error-border: #b91c1c;
+      --success: #bbf7d0;
+      --success-border: #166534;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 55%);
+      color: var(--text);
+    }
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .card {
+      max-width: 640px;
+      width: 100%;
+      background: linear-gradient(145deg, #020617, #020617);
+      border-radius: 1.25rem;
+      border: 1px solid var(--border);
+      padding: 1.5rem 1.75rem 1.75rem;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.9);
+    }
+    h1 {
+      margin: 0 0 0.4rem;
+      font-size: 1.4rem;
+    }
+    p {
+      margin: 0;
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+    .section { margin-top: 1.25rem; }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-bottom: 0.2rem;
+    }
+    input {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      border-radius: 0.6rem;
+      border: 1px solid var(--border);
+      background-color: #020617;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-soft);
+    }
+    .help {
+      margin-top: 0.25rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    .wallet-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.35rem;
+    }
+    .pill {
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--text);
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .pill.selected {
+      background: var(--accent);
+      color: #020617;
+      border-color: var(--accent);
+    }
+    .pill:hover { border-color: var(--accent); }
+    button.action {
+      width: 100%;
+      margin-top: 0.75rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 0.7rem;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--accent);
+      color: #020617;
+    }
+    button.action:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    button.secondary {
+      width: 100%;
+      margin-top: 0.5rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 0.7rem;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--text);
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    button.secondary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .status,
+    .error {
+      margin-top: 0.6rem;
+      padding: 0.5rem 0.6rem;
+      border-radius: 0.7rem;
+      font-size: 0.76rem;
+    }
+    .status {
+      border: 1px solid var(--success-border);
+      background: rgba(22, 101, 52, 0.2);
+      color: var(--success);
+    }
+    .error {
+      border: 1px solid var(--error-border);
+      background: rgba(127, 29, 29, 0.3);
+      color: var(--error);
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.7rem;
+      background: #020617;
+      padding: 0.15rem 0.4rem;
+      border-radius: 0.35rem;
+    }
+    .footer-note {
+      margin-top: 0.75rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="card">
+    <header>
+      <h1>Scavenger Reward Consolidation</h1>
+      <p>
+        Assign all accumulated Scavenger Mine rights from one address (A)
+        to another address (B) using your browser wallet. No curl, no CLI.
+      </p>
+    </header>
+
+    <section class="section">
+      <label for="dest">Destination address (B)</label>
+      <input id="dest" type="text" placeholder="addr1..." autocomplete="off" />
+      <div class="help">
+        This is the Cardano address that will ultimately receive all your NIGHT.
+      </div>
+    </section>
+
+    <section class="section">
+      <label for="orig">Original mining address (A)</label>
+      <input id="orig" type="text" placeholder="addr1..." autocomplete="off" />
+      <div class="help">
+        This must be an address that mined Scavenger solutions and is
+        controlled by the connected wallet.
+      </div>
+    </section>
+
+    <section class="section">
+      <label>Select wallet for address A</label>
+      <div id="wallet-list" class="wallet-buttons"></div>
+      <div id="wallet-hint" class="help"></div>
+      <button id="btn-connect" class="secondary" type="button">
+        Connect wallet (for A)
+      </button>
+    </section>
+
+    <section class="section">
+      <button id="btn-donate" class="action" type="button">
+        Sign &amp; Consolidate
+      </button>
+
+      <div id="status" class="status" style="display:none"></div>
+      <div id="error" class="error" style="display:none"></div>
+
+      <!-- On-page console -->
+      <pre
+        id="console"
+        style="
+          margin-top: 0.75rem;
+          padding: 0.5rem 0.6rem;
+          font-size: 0.72rem;
+          background: #020617;
+          border-radius: 0.7rem;
+          border: 1px solid #1e293b;
+          max-height: 180px;
+          overflow-y: auto;
+          white-space: pre-wrap;
+        "
+      ></pre>
+
+      <div class="footer-note">
+        When you click <strong>Sign &amp; Consolidate</strong>, your wallet
+        will sign this exact message:
+        <br />
+        <code>Assign accumulated Scavenger rights to: {destination_address}</code>
+        <br />
+        The signed proof is then sent (via this site) to the official Scavenger API.
+        Your private keys never leave your wallet.
+      </div>
+
+
+      <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #1e293b;" />
+
+      <div style="text-align: center; margin-top: 1rem;">
+        <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 0.75rem;">
+          If this tool helped you, you can support my work 💛
+        </p>
+
+        <!-- Buy Me a Coffee -->
+        <a href="https://buymeacoffee.com/learncardano" target="_blank" rel="noopener"
+          style="display:inline-block; margin-bottom:1rem;">
+          <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
+              alt="Buy Me A Coffee" style="height:48px; border-radius:8px;" />
+        </a>
+
+        <!-- ADA Handle -->
+        <p style="font-size: 0.75rem; color: var(--muted); margin-top: 1rem;">
+          Prefer to send ADA?
+        </p>
+
+        <div style="
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:0.6rem;
+          background:#020617;
+          border:1px solid var(--border);
+          padding:0.6rem 1rem;
+          border-radius:0.75rem;
+          width:fit-content;
+          margin:0.5rem auto 0 auto;
+        ">
+          <img src="https://pbs.twimg.com/profile_images/1438181824119721984/ATMLNczx_400x400.jpg"
+              alt="ADA Handle icon"
+              style="width:36px; height:36px; border-radius:50%;" />
+
+          <span id="adahandle"
+                style="font-size:0.95rem; cursor:pointer; color:var(--text);">
+            $RugMeDaddy
+          </span>
+        </div>
+
+        <p id="copy-status" style="font-size:0.7rem; color:var(--muted); margin-top:0.45rem;"></p>
+      </div>
+
+      <script>
+        // Copy ADA Handle to clipboard
+        document.getElementById("adahandle").addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText("$RugMeDaddy");
+            const status = document.getElementById("copy-status");
+            status.textContent = "Copied to clipboard!";
+            setTimeout(() => { status.textContent = ""; }, 1500);
+          } catch (e) {
+            console.error(e);
+          }
+        });
+      </script>
+
+
+
+
+    </section>
+  </div>
+</div>
+
+<script>
+  // Frontend talks to WordPress REST proxy, not Midnight directly
+  const BACKEND_DONATE_URL = "/wp-json/scavenger/v1/donate";
+
+  // Wallets we actually support for Scavenger consolidation
+  const wallets = [
+    {
+      key: "eternl",
+      name: "Eternl",
+      icon: "https://sm.midnight.gd/icons/eternl-wallet.svg",
+    },
+    {
+      key: "lace",
+      name: "Lace",
+      icon: "https://sm.midnight.gd/icons/lace-wallet.svg",
+    },
+    {
+      key: "typhoncip30",
+      name: "Typhon",
+      icon: "https://sm.midnight.gd/icons/typhon-wallet.svg",
+    },
+    {
+      key: "yoroi",
+      name: "Yoroi",
+      icon: "https://sm.midnight.gd/icons/yoroi-wallet.svg",
+    },
+    {
+      key: "exodus",
+      name: "Exodus",
+      icon: "https://sm.midnight.gd/icons/exodus-wallet.svg",
+    },
+    {
+      key: "vespr",
+      name: "VESPR",
+      icon: "https://sm.midnight.gd/icons/vespr-wallet.svg",
+    },
+    {
+      key: "gerowallet",
+      name: "Gero",
+      icon: "https://sm.midnight.gd/icons/gero-wallet.svg",
+    },
+  ];
+
+  const walletKeys = wallets.map((w) => w.key);
+
+  let selectedWalletKey = null;
+  let walletApi = null;
+  let loading = false;
+
+  const destInput = document.getElementById("dest");
+  const origInput = document.getElementById("orig");
+  const walletList = document.getElementById("wallet-list");
+  const walletHint = document.getElementById("wallet-hint");
+  const btnConnect = document.getElementById("btn-connect");
+  const btnDonate = document.getElementById("btn-donate");
+  const statusBox = document.getElementById("status");
+  const errorBox = document.getElementById("error");
+  const consoleBox = document.getElementById("console");
+
+  function log(msg) {
+    const ts = new Date().toISOString().replace("T", " ").replace("Z", "");
+    consoleBox.textContent += `[${ts}] ${msg}\n`;
+    consoleBox.scrollTop = consoleBox.scrollHeight;
+  }
+
+  function setStatus(msg) {
+    if (!msg) {
+      statusBox.style.display = "none";
+      statusBox.textContent = "";
+      return;
+    }
+    statusBox.style.display = "block";
+    statusBox.textContent = msg;
+    log("[STATUS] " + msg);
+  }
+
+  function setError(msg) {
+    if (!msg) {
+      errorBox.style.display = "none";
+      errorBox.textContent = "";
+      return;
+    }
+    errorBox.style.display = "block";
+    errorBox.textContent = msg;
+    log("[ERROR] " + msg);
+  }
+
+  function setLoading(isLoading) {
+    loading = isLoading;
+    btnDonate.disabled = isLoading || !walletApi;
+    btnConnect.disabled = isLoading;
+    btnDonate.textContent = isLoading ? "Signing & submitting..." : "Sign & Consolidate";
+    log("[INFO] Loading = " + isLoading);
+  }
+
+  function utf8ToHex(str) {
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(str);
+    let hex = "";
+    for (let i = 0; i < bytes.length; i++) {
+      hex += bytes[i].toString(16).padStart(2, "0");
+    }
+    return hex;
+  }
+
+  function detectWallets() {
+    if (typeof window === "undefined" || !window.cardano) return [];
+    const found = [];
+    for (const key of walletKeys) {
+      if (window.cardano[key]) found.push(key);
+    }
+    return found;
+  }
+
+  function renderWalletButtons() {
+    const detected = detectWallets();
+    walletList.innerHTML = "";
+
+    if (detected.length === 0) {
+      walletHint.textContent =
+        "No CIP-30 compatible wallets detected yet. Make sure Eternl, Lace, Typhon, Yoroi, Exodus, VESPR or Gero is enabled for this site.";
+      log("[INFO] No wallets detected.");
+      return;
+    }
+
+    walletHint.textContent =
+      "Choose the wallet that controls your original mining address (A):";
+    log("[INFO] Detected wallets: " + detected.join(", "));
+
+    wallets.forEach((w) => {
+      if (!detected.includes(w.key)) return; // only show installed wallets
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "pill";
+      btn.style.display = "flex";
+      btn.style.alignItems = "center";
+      btn.style.gap = "0.5rem";
+      btn.style.padding = "0.4rem 0.9rem";
+
+      const img = document.createElement("img");
+      img.src = w.icon;
+      img.alt = w.name + " wallet";
+      img.style.width = "20px";
+      img.style.height = "20px";
+      img.style.borderRadius = "50%";
+
+      const label = document.createElement("span");
+      label.textContent = w.name;
+
+      btn.appendChild(img);
+      btn.appendChild(label);
+
+      btn.addEventListener("click", () => {
+        selectedWalletKey = w.key;
+        document
+          .querySelectorAll(".pill")
+          .forEach((el) => el.classList.remove("selected"));
+        btn.classList.add("selected");
+        log("[INFO] Selected wallet: " + w.key);
+      });
+
+      walletList.appendChild(btn);
+    });
+  }
+
+
+  async function connectWallet() {
+    setError("");
+    setStatus("");
+
+    if (!selectedWalletKey) {
+      renderWalletButtons();
+      setError("Please select a wallet first.");
+      return;
+    }
+    if (!window.cardano || !window.cardano[selectedWalletKey]) {
+      setError("Selected wallet not found in this browser.");
+      return;
+    }
+    try {
+      setLoading(true);
+      log("[INFO] Enabling wallet: " + selectedWalletKey);
+      walletApi = await window.cardano[selectedWalletKey].enable();
+      setStatus("Connected to wallet: " + selectedWalletKey.toUpperCase());
+      setError("");
+    } catch (e) {
+      console.error(e);
+      setError(
+        "Failed to connect to wallet. Check your wallet popup and DApp permissions, then try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function donate() {
+    setError("");
+    setStatus("");
+
+    const dest = destInput.value.trim();
+    const orig = origInput.value.trim();
+
+    if (!dest || !orig) {
+      setError("Please fill in both Destination (B) and Original (A) addresses.");
+      return;
+    }
+    if (!dest.startsWith("addr")) {
+      setError("Destination address (B) does not look like a valid Cardano address.");
+      return;
+    }
+    if (!orig.startsWith("addr")) {
+      setError("Original address (A) does not look like a valid Cardano address.");
+      return;
+    }
+
+    if (!walletApi) {
+      setError("Please connect your wallet for address A first.");
+      return;
+    }
+
+    const msg = "Assign accumulated Scavenger rights to: " + dest;
+    const msgHex = utf8ToHex(msg);
+
+    log("[INFO] Message to sign: " + msg);
+    log("[DEBUG] Message hex: " + msgHex.slice(0, 64) + "...");
+
+    try {
+      setLoading(true);
+
+      log("[INFO] Calling wallet.signData(...)");
+      // CIP-30: addr can be bech32 or cbor<address> hex
+      const signed = await walletApi.signData(orig, msgHex);
+      const signatureHex = signed && signed.signature ? signed.signature : signed;
+
+      if (!signatureHex || typeof signatureHex !== "string") {
+        throw new Error("Wallet did not return a valid hex signature.");
+      }
+
+      log(
+        "[DEBUG] Signature length: " +
+          signatureHex.length +
+          " hex chars (~" +
+          Math.round(signatureHex.length / 2) +
+          " bytes)"
+      );
+
+      log("[INFO] Sending to backend " + BACKEND_DONATE_URL);
+      const resp = await fetch(BACKEND_DONATE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dest, orig, signature: signatureHex }),
+      });
+
+      let json = null;
+      try {
+        json = await resp.json();
+      } catch (_) {
+        log("[WARN] Backend did not return JSON.");
+      }
+
+      log(
+        "[DEBUG] Backend response status: " +
+          resp.status +
+          ", body: " +
+          JSON.stringify(json)
+      );
+      
+
+      if (!resp.ok) {
+      console.error("Donation error:", json);
+
+      // Friendlier copy for common 404 from Scavenger
+      if (
+        resp.status === 404 &&
+        json &&
+        typeof json.message === "string" &&
+        json.message.toLowerCase().includes("not registered")
+      ) {
+        setError(
+          "This original address (A) is not registered for Scavenger Mine. " +
+          "Please connect a wallet that controls a registered mining address."
+        );
+        return;
+      }
+
+      setError(
+        (json && json.message) ||
+          "Donation failed (HTTP " +
+            resp.status +
+            "). Check addresses, wallet and try again."
+      );
+      return;
+    }
+
+      const consolidated =
+        json && typeof json.solutions_consolidated === "number"
+          ? json.solutions_consolidated
+          : 0;
+
+      const msgOut =
+        (json && json.message) || "Donation assignment completed.";
+      setStatus(
+        msgOut +
+          " Solutions consolidated: " +
+          consolidated +
+          ". Donation ID: " +
+          (json && json.donation_id ? json.donation_id : "n/a")
+      );
+    } catch (e) {
+      console.error(e);
+      setError(e && e.message ? e.message : "Unexpected error performing donation.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  window.addEventListener("load", () => {
+    renderWalletButtons();
+    setTimeout(renderWalletButtons, 1000); // catch slower injection
+    btnConnect.addEventListener("click", connectWallet);
+    btnDonate.addEventListener("click", donate);
+    setStatus("");
+    setError("");
+    setLoading(false);
+    log("[INFO] Page loaded. Ready.");
+  });
+</script>
+</body>
+</html>
